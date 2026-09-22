@@ -21,10 +21,11 @@ class PaqueretteLocation(Location):
 class PaqueretteBunLocation(PaqueretteLocation):
     game: str = PaqueretteGame
 
-    def __init__(self, player: int, name: str, id: int, bun: Bunny, use_expert: bool):
+    def __init__(self, player: int, name: str, id: int, bun: Bunny, use_expert: bool, use_home_captures: bool):
         super().__init__(player, name, id)
         self.bun: Bunny = bun
         self.use_expert: bool = use_expert
+        self.use_home_captures: bool = use_home_captures
 
     def access_rule(self, state: CollectionState):
         if not self.bun.requires:
@@ -34,27 +35,33 @@ class PaqueretteBunLocation(PaqueretteLocation):
                for requirement in self.bun.requires):
             return True
 
-        return self.use_expert and any(
-                requirement.satisfied(state, self.player)
-                for requirement in self.bun.expert)
+        if self.use_expert and any(requirement.satisfied(state, self.player)
+                for requirement in self.bun.expert):
+            return True
+
+        if self.use_home_captures is False:
+            return any(requirement.satisfied(state, self.player) for requirement in self.bun.expertNoHome)
+
+        return False
 
 
 def makeLocationName(mapName: str, index: int) -> str:
     return mapName + "-" + str(index)
 
 
-def generateBunnyLocation(playerId, bunny: Bunny, expertRouting: bool) \
+def generateBunnyLocation(playerId, bunny: Bunny, expertRouting: bool, homeCaptures: bool) \
         -> PaqueretteBunLocation:
     name = makeLocationName(bunny.map, bunny.index)
-    return PaqueretteBunLocation(playerId, name, location_name_to_id[name], bunny, expertRouting)
+    return PaqueretteBunLocation(playerId, name, location_name_to_id[name], bunny, expertRouting, homeCaptures)
 
 
 
 def generateRegionBunnies(playerId,
                           regionBunnies: list[Bunny],
-                          expertRouting: bool) -> list[PaqueretteBunLocation]:
+                          expertRouting: bool,
+                          homeCaptures: bool) -> list[PaqueretteBunLocation]:
     return [
-            generateBunnyLocation(playerId, bunny, expertRouting)
+            generateBunnyLocation(playerId, bunny, expertRouting, homeCaptures)
             for bunny in regionBunnies
             ]
 
