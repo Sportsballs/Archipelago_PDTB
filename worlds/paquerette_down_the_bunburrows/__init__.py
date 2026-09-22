@@ -155,34 +155,35 @@ class PaqueretteDownTheBunburrowsWorld(World):
 
     def create_regions(self) -> None:
         expert_flag: bool = self.options.expert_routing.value == 1
+        home_captures_flag: bool = self.options.home_captures.value == 1
 
         menu = self.create_region("Menu")
         pink = self.create_region("Pink", "The Pink Bunburrow",
-                generateRegionBunnies(self.player, pinkBunnies, expert_flag))
+                generateRegionBunnies(self.player, pinkBunnies, expert_flag, home_captures_flag))
         sunken = self.create_region("Sunken", "The Sunken Bunburrow",
-                generateRegionBunnies(self.player, sunkenBunnies, expert_flag))
+                generateRegionBunnies(self.player, sunkenBunnies, expert_flag, home_captures_flag))
         hay = self.create_region("Hay", "The Hay Bunburrow",
-                generateRegionBunnies(self.player, hayBunnies, expert_flag))
+                generateRegionBunnies(self.player, hayBunnies, expert_flag, home_captures_flag))
         spooky = self.create_region("Spooky", "The Spooky Bunburrow",
-                generateRegionBunnies(self.player, spookyBunnies, expert_flag))
+                generateRegionBunnies(self.player, spookyBunnies, expert_flag, home_captures_flag))
 
         forgotten_upper = self.create_region("ForgottenUpper", "The Forgotten Bunburrow",
-                generateRegionBunnies(self.player, forgottenUpperBunnies, expert_flag))
+                generateRegionBunnies(self.player, forgottenUpperBunnies, expert_flag, home_captures_flag))
         forgotten_middle = self.create_region("ForgottenMiddle", "The Forgotten Bunburrow",
-                generateRegionBunnies(self.player, forgottenMiddleBunnies, expert_flag))
+                generateRegionBunnies(self.player, forgottenMiddleBunnies, expert_flag, home_captures_flag))
         forgotten_8 = self.create_region("Forgotten8", "The Forgotten Bunburrow",
-                generateRegionBunnies(self.player, forgotten8Bunny, expert_flag))
+                generateRegionBunnies(self.player, forgotten8Bunny, expert_flag, home_captures_flag))
         forgotten_9 = self.create_region("Forgotten9", "The Forgotten Bunburrow",
-                generateRegionBunnies(self.player, forgotten9Bunnies, expert_flag))
+                generateRegionBunnies(self.player, forgotten9Bunnies, expert_flag, home_captures_flag))
         forgotten_lower = self.create_region("ForgottenLower", "The Forgotten Bunburrow",
-                generateRegionBunnies(self.player, forgottenLowerBunnies, expert_flag))
+                generateRegionBunnies(self.player, forgottenLowerBunnies, expert_flag, home_captures_flag))
 
         temple = self.create_region("Temple", "The Temple of Bun",
-                generateRegionBunnies(self.player, templeBunnies, expert_flag))
+                generateRegionBunnies(self.player, templeBunnies, expert_flag, home_captures_flag))
         south_temple = self.create_region("SouthTemple", "The Temple of Bun",
-                generateRegionBunnies(self.player, southTempleBunnies, expert_flag))
+                generateRegionBunnies(self.player, southTempleBunnies, expert_flag, home_captures_flag))
         false_hell = self.create_region("FalseHell", "The False Hells",
-                generateRegionBunnies(self.player, falseHellBunnies, expert_flag))
+                generateRegionBunnies(self.player, falseHellBunnies, expert_flag, home_captures_flag))
         menu.connect(pink)
         menu.connect(sunken)
         menu.connect(hay, rule=lambda state: len(self.get_bunnies(state)) >= 18)
@@ -209,17 +210,17 @@ class PaqueretteDownTheBunburrowsWorld(World):
         if not self.options.victory_condition == VictoryCondition.option_credits:
 
             south20 = self.create_region("South20", "The Temple of Bun",
-                                         generateRegionBunnies(self.player, south20Bunny, expert_flag))
+                                         generateRegionBunnies(self.player, south20Bunny, expert_flag, home_captures_flag))
 
             sleep_hell = self.create_region("SleepHell", "The Nightmare Hells",
-                                           generateRegionBunnies(self.player, sleepHellBunnies, expert_flag))
+                                           generateRegionBunnies(self.player, sleepHellBunnies, expert_flag, home_captures_flag))
             crumbled_hell = self.create_region("CrumbledHell", "The Crumbling Hells",
-                                              generateRegionBunnies(self.player, crumblingHellBunnies, expert_flag))
+                                              generateRegionBunnies(self.player, crumblingHellBunnies, expert_flag, home_captures_flag))
 
             hell_temple = self.create_region("HellTemple", "The Temple of Hell",
-                                            generateRegionBunnies(self.player, hellTempleBunnies, expert_flag))
+                                            generateRegionBunnies(self.player, hellTempleBunnies, expert_flag, home_captures_flag))
             pillars = self.create_region("Pillars", "The Pillars Room",
-                                         generateRegionBunnies(self.player, pillarsBunny, expert_flag))
+                                         generateRegionBunnies(self.player, pillarsBunny, expert_flag, home_captures_flag))
 
             forgotten_lower.connect(sleep_hell, rule=self.is_sleep_hell_unlocked)
             sleep_hell.connect(crumbled_hell, rule=self.is_crumbled_hell_unlocked)
