@@ -26,6 +26,7 @@ class Bunny():
         self.index = index
         self.requires: list[AccessRequirement] = list()
         self.expert: list[AccessRequirement] = list()
+        self.expertNoHome: list[AccessRequirement] = list()
 
     def Needs(self, *ids: str, regions=None):
         if regions is None:
@@ -47,6 +48,17 @@ class Bunny():
         req.regions = regions
 
         self.expert.append(req)
+        return self
+
+    def NoHome(self, *ids: str, regions=None):
+        if regions is None:
+            regions = []
+
+        req = AccessRequirement()
+        req.tools = list(ids)
+        req.regions = regions
+
+        self.expertNoHome.append(req)
         return self
 
 
@@ -73,17 +85,15 @@ pinkBunnies = [
 
 sunkenBunnies = [
         Bun("N-1"),
-        Bun("N-2").Needs("N-2"),
-        Bun("N-3").Needs("N-3"),
-        # N-4 can be captured from C-4 with only C-4 tools
-        Bun("N-4").Needs("N-4").Expert("C-4", regions=["Hay"]),
+        Bun("N-2").Needs("N-2"), 
+        Bun("N-3").Needs("N-3").Expert(regions=["Hay"]), # Expert via C-3 (tools guaranteed)
+        Bun("N-4").Needs("N-4").Expert("C-4", regions=["Hay"]), # Expert via C-4
         Bun("N-5").Needs("N-5"),
         Bun("N-6").Needs("N-6"),
-        Bun("N-7").Needs("N-7"),
-        Bun("N-8").Needs("N-8"),
+        Bun("N-7").Needs("N-7").NoHome("C-7", regions=["Hay"]), # Non-Home Expert via C-7
+        Bun("N-8").Needs("N-8").Expert("C-8", regions=["Hay"]), # Expert via C-8 by stacking with W-8
         Bun("N-9").Needs("N-9"),
-        # N-10 can be captured from C-10 with only C-10 tools
-        Bun("N-10").Needs("N-10").Expert("C-10", regions=["Hay"]),
+        Bun("N-10").Needs("N-10").Expert("C-10", regions=["Hay"]), # Expert via C-10
         Bun("N-11").Needs("N-11")
         ]
 
@@ -106,13 +116,13 @@ spookyBunnies = [
         Bun("S-1").Needs("S-1"),
         Bun("S-2").Needs("S-2"),
         Bun("S-3").Needs("S-3"),
-        Bun("S-4").Needs("S-4"),
+        Bun("S-4").Needs("S-4").NoHome("C-4"), # Non-Home Expert via C-4
         Bun("S-5"),  # No Tools
         Bun("S-6"),  # Tutorial level, tools guaranteed
         Bun("S-7").Needs("S-7"),
         Bun("S-8").Needs("S-8"),
         Bun("S-9").Needs("S-9"),
-        Bun("S-10").Needs("S-10"),
+        Bun("S-10").Needs("S-10").NoHome("C-10"), # Non-Home Expert via C-10
         Bun("S-11").Needs("S-11"),
         Bun("S-12").Needs("S-12"),
         ]
@@ -121,12 +131,16 @@ spookyBunnies = [
 forgottenUpperBunnies = [
         Bun("E-1").Needs("E-1"),
         Bun("E-2").Needs("E-2"),
-        Bun("E-3", 1).Needs("E-3", "E-2").Expert(),  # Only C-3 needed
-        Bun("E-3", 3).Needs("E-3", "E-2").Expert(),  # Only C-3 needed
+        Bun("E-3", 1).Needs("E-3", "E-2").Expert(),  # Expert via C-3
+        Bun("E-3", 3).Needs("E-3", "E-2").Expert(),  # Expert via C-3
         Bun("E-3", 2).Needs("E-3", "E-2"),
         Bun("E-3", 4).Needs("E-3", "E-2"),
-        Bun("E-4").Needs("E-4", "E-3", "E-2")
+        Bun("E-4").Needs("E-4", "E-3", "E-2").Expert("E-4", "E-3") # Expert via C-3 by edge digging in E-3
         ]
+# BUG: The E-3-1, E-3-3, and E-4 expert captures are only in logic if you have 45 bunnies
+# This will likely require creating a new region for these 3 bunnies in order to correctly define the logic
+# As far as I'm aware, splitting the bunnies in E-3 into two seperate regions shouldn't cause issues
+# I will try to have this fixed before submitting this big logic overhaul release - Sports
 
 # Rooms require only E-5 and E-3 OR E-5 and C-5
 # Not considered dependent upon Upper locations due to C-3
@@ -157,7 +171,12 @@ forgottenLowerBunnies = [
         ]
 
 templeBunnies = [
-        Bun("C-13").Needs("S-13"),
+        Bun("C-13").Needs("S-13").NoHome(), # Non-Home Expert with only C-13 (which is a requirement for the region)
+# BUG: It can be reasonably argued that the C-13 Non-Home capture shouldn't need expert routing to be in logic
+# Currently as it stands, non-home captures are only in logic if expert routing is enabled
+# Making a system which checks for non-expert, non-home captures would require another rework of access_rule function in Locations.py
+# This is the only bunny that this would apply to (as far as I can tell), and non-expert, non-home is very likely a rarely meaningful option setting
+# I probably won't be spending time to fix this right now - Sports
 
         Bun("W-13"),
         Bun("W-14").Needs("W-14"),
@@ -173,7 +192,7 @@ templeBunnies = [
         Bun("N-14").Needs("N-14"),
         Bun("N-15").Needs("N-15"),
         Bun("N-16").Needs("N-16"),
-        Bun("N-17").Needs("N-17"),
+        Bun("N-17").Needs("N-17").NoHome("C-17"), # Non-Home Expert via C-17
         Bun("N-18").Needs("N-18")
         ]
 
@@ -207,25 +226,27 @@ sleepHellBunnies = [
         Bun("E-18").Needs("E-18"),
         Bun("E-19").Needs("E-19"),
         Bun("E-20").Needs("E-20"),
-        Bun("E-21").Needs("E-20", "E-21"),
-        Bun("E-22").Needs("E-20"),
+        Bun("E-21").Needs("E-20", "E-21").NoHome("E-20", "C-20"), # Non-Home Expert by stacking with E-20 and C-20
+        Bun("E-22").Needs("E-20", "E-22").NoHome("E-20"), # Non-Home Expert by stacking with E-20
         ]
 
 # Region depends on Sleep Hell, E-20 tools, and C-20 tools
 crumblingHellBunnies = [
-        Bun("C-20"),
-        Bun("C-21").Needs("C-21"),
+        Bun("C-20").Needs("C-20").NoHome("E-20"), # Non-Home Expert by stacking with E-20
+# BUG: The C-20 capture assumes that C-20 tools are required due to the region it is placed in
+# However, a Non-Home expert capture is possible without C-20 tools, which currently will not show in logic
+# This can be easily resolved by moving this bunny to the sleepHell region above
+# This should be a quick fix, I'll get it done before the big logic overhaul release - Sports
 
-        # Either S-22 or E-22
-        Bun("C-22").Needs("C-22", "S-22").Needs("C-22", "E-22"),
+        Bun("C-21"), 
+        Bun("C-22").Needs("C-22", "S-22").Needs("C-22", "E-22").NoHome("C-22"), # Non-Home Expert via either S-22 or N-22. Either S-22 or E-22 required for non-expert
         Bun("C-23").Needs("C-22"),
         Bun("C-24").Needs("C-22", "C-24"),
 
         Bun("W-19").Needs("W-19"),
         Bun("W-20").Needs("W-20"),
 
-        # Expert: Dig in C-20
-        Bun("W-21").Needs("W-21", "C-21").Expert("W-21"),
+        Bun("W-21").Needs("W-21", "C-21").Expert("W-21").NoHome(), # Expert by edge digging in C-20, Non-Home Expert via C-21 by edge digging in C-20
 
         Bun("N-19", 1).Needs("N-19"),
         Bun("N-19", 2).Needs("N-19"),
@@ -238,23 +259,17 @@ crumblingHellBunnies = [
         Bun("N-22", 2).Needs("C-22"),
         Bun("N-23", 1).Needs("N-23", "C-22"),
 
-        # Expert: Dig in C-20
-        Bun("S-21", 1).Needs("S-21", "C-21").Expert("S-21"),
-        Bun("S-21", 2).Needs("S-21", "C-21").Expert("S-21"),
+        Bun("S-21", 1).Needs("S-21", "C-21").Expert("S-21").NoHome(), # Expert by edge digging in C-20, Non-Home Expert via C-21 by edge digging in C-20
+        Bun("S-21", 2).Needs("S-21", "C-21").Expert("S-21").NoHome(), # Expert by edge digging in C-20, Non-Home Expert via C-21 by edge digging in C-20
 
-        # Dig from C-21 will not capture S-22
-        Bun("S-22").Needs("S-22", "C-22"),
-
-        # Expert: Dig in S-21, from C-20
-        Bun("S-23").Needs("S-23", "C-22").Expert("S-23", "S-21"),
-        Bun("S-24", 1).Needs("S-24", "S-23", "C-22")
-                      .Expert("S-24", "S-23", "S-21"),
-        Bun("S-24", 2).Needs("S-24", "S-23", "C-22")
-                      .Expert("S-24", "S-23", "S-21"),
+        Bun("S-22").Needs("S-22", "C-22").Expert("S-22", "S-21").NoHome("S-21"), # Expert and Non-Home Expert by edge digging in both C-20 and S-21
+        Bun("S-23").Needs("S-23", "C-22").Expert("S-23", "S-21"), # Expert by edge digging in both C-20 and S-21
+        Bun("S-24", 1).Needs("S-24", "S-23", "C-22").Expert("S-24", "S-23", "S-21"), # Expert by edge digging in both C-20 and S-21
+        Bun("S-24", 2).Needs("S-24", "S-23", "C-22").Expert("S-24", "S-23", "S-21"), # Expert by edge digging in both C-20 and S-21
         ]
 
 # Separate region for generation purposes
-south20Bunny = [Bun("S-20").Needs("S-20")]
+south20Bunny = [Bun("S-20").Needs("S-20").NoHome("C-20")] # Non-Home Expert via C-20
 
 hellTempleBunnies = [
         Bun("W-23").Needs("W-23"),
@@ -262,8 +277,6 @@ hellTempleBunnies = [
         Bun("W-25").Needs("W-25"),
         Bun("W-26", 1).Needs("W-26"),
         Bun("W-26", 2).Needs("W-26"),
-
-        # Does not need C-26, just W-26
         Bun("C-26").Needs("W-26"),
         ]
 
