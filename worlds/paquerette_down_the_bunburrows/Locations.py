@@ -39,7 +39,7 @@ class PaqueretteBunLocation(PaqueretteLocation):
                 for requirement in self.bun.expert):
             return True
 
-        if self.use_home_captures is False:
+        if self.use_expert and self.use_home_captures is False:
             return any(requirement.satisfied(state, self.player) for requirement in self.bun.expertNoHome)
 
         return False
